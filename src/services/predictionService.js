@@ -69,3 +69,36 @@ export const updatePrediction = async (id, updateData) => {
     return false;
   }
 };
+
+// --- Commenting Features ---
+
+export const addComment = async (predictionId, userId, userEmail, commentText) => {
+  try {
+    const commentsRef = collection(db, PREDICTIONS_COLLECTION, predictionId, 'comments');
+    const docRef = await addDoc(commentsRef, {
+      userId,
+      userEmail,
+      text: commentText,
+      createdAt: serverTimestamp()
+    });
+    return { id: docRef.id, text: commentText, userEmail };
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    throw new Error("Could not post comment.");
+  }
+};
+
+export const getComments = async (predictionId) => {
+  try {
+    const commentsRef = collection(db, PREDICTIONS_COLLECTION, predictionId, 'comments');
+    const q = query(commentsRef, orderBy('createdAt', 'asc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    return [];
+  }
+};

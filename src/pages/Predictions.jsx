@@ -4,7 +4,9 @@ import {
   getPredictions, 
   addPrediction, 
   deletePrediction, 
-  updatePrediction 
+  updatePrediction,
+  addComment,
+  getComments
 } from '../services/predictionService';
 import { 
   Plus, 
@@ -200,61 +202,170 @@ const Predictions = () => {
               </div>
             ) : (
               sortedPredictions.map((p) => (
-                <article key={p.id} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold">
-                        {p.userEmail?.[0].toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-slate-900">{p.userEmail}</h3>
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                          <Clock className="w-3 h-3" />
-                          {p.createdAt?.seconds 
-                            ? new Date(p.createdAt.seconds * 1000).toLocaleDateString()
-                            : 'Just now'}
-                        </div>
-                      </div>
-                    </div>
-                    {user && user.uid === p.userId && (
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => startEdit(p)}
-                          className="p-2 hover:bg-yellow-50 text-slate-400 hover:text-yellow-600 rounded-full transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(p.id)}
-                          className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="bg-slate-50 p-4 rounded-xl mb-4 border border-slate-100 flex items-center justify-between">
-                    <div>
-                      <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Match</span>
-                      <span className="font-bold text-slate-900">{p.match}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Prediction</span>
-                      <span className="text-2xl font-black text-yellow-600">{p.prediction}</span>
-                    </div>
-                  </div>
-
-                  <p className="text-slate-600 leading-relaxed italic">
-                    "{p.analysis}"
-                  </p>
-                </article>
+                <PredictionCard 
+                  key={p.id} 
+                  prediction={p} 
+                  user={user} 
+                  onEdit={startEdit} 
+                  onDelete={handleDelete} 
+                />
               ))
             )}
           </div>
         )}
       </div>
     </div>
+  );
+};
+
+const PredictionCard = ({ prediction, user, onEdit, onDelete }) => {
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
+
+  const fetchComments = async () => {
+    setLoadingComments(true);
+    try {
+      const data = await getComments(prediction.id);
+      setComments(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showComments) {
+      fetchComments();
+    }
+  }, [showComments, prediction.id]);
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!user || !newComment.trim()) return;
+
+    setSubmittingComment(true);
+    try {
+      await addComment(prediction.id, user.uid, user.email, newComment.trim());
+      setNewComment('');
+      fetchComments();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  return (
+    <article className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold">
+            {prediction.userEmail?.[0].toUpperCase()}
+          </div>
+          <div>
+            <h3 className="font-bold text-slate-900">{prediction.userEmail}</h3>
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <Clock className="w-3 h-3" />
+              {prediction.createdAt?.seconds 
+                ? new Date(prediction.createdAt.seconds * 1000).toLocaleDateString()
+                : 'Just now'}
+            </div>
+          </div>
+        </div>
+        {user && user.uid === prediction.userId && (
+          <div className="flex gap-2">
+            <button 
+              onClick={() => onEdit(prediction)}
+              className="p-2 hover:bg-yellow-50 text-slate-400 hover:text-yellow-600 rounded-full transition-colors"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => onDelete(prediction.id)}
+              className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+      
+      <div className="bg-slate-50 p-4 rounded-xl mb-4 border border-slate-100 flex items-center justify-between">
+        <div>
+          <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Match</span>
+          <span className="font-bold text-slate-900">{prediction.match}</span>
+        </div>
+        <div className="text-right">
+          <span className="text-xs uppercase font-bold text-slate-400 block mb-1">Prediction</span>
+          <span className="text-2xl font-black text-yellow-600">{prediction.prediction}</span>
+        </div>
+      </div>
+
+      <p className="text-slate-600 leading-relaxed italic mb-4">
+        "{prediction.analysis}"
+      </p>
+
+      <div className="border-t border-slate-50 pt-4 flex items-center justify-between">
+        <button 
+          onClick={() => setShowComments(!showComments)}
+          className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+        >
+          <MessageSquare className="w-4 h-4" />
+          {showComments ? 'Hide Comments' : 'Comments'}
+        </button>
+      </div>
+
+      {showComments && (
+        <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="space-y-3">
+            {loadingComments ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="w-5 h-5 text-slate-300 animate-spin" />
+              </div>
+            ) : comments.length === 0 ? (
+              <p className="text-center text-sm text-slate-400 py-2">No comments yet.</p>
+            ) : (
+              comments.map((comment) => (
+                <div key={comment.id} className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-slate-700">{comment.userEmail}</span>
+                    <span className="text-[10px] text-slate-400">
+                      {comment.createdAt?.seconds 
+                        ? new Date(comment.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : 'Just now'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-600">{comment.text}</p>
+                </div>
+              ))
+            )}
+          </div>
+
+          {user && (
+            <form onSubmit={handleCommentSubmit} className="flex gap-2">
+              <input 
+                type="text"
+                placeholder="Write a comment..."
+                className="flex-grow bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500 transition-all"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              />
+              <button 
+                type="submit"
+                disabled={submittingComment || !newComment.trim()}
+                className="bg-slate-900 text-white p-2 rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors"
+              >
+                {submittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+    </article>
   );
 };
 
