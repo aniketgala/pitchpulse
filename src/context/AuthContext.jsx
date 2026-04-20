@@ -59,7 +59,8 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
-    loading
+    loading,
+    isFirebaseConfigured
   };
 
   return (

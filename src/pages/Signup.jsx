@@ -9,11 +9,15 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
+  const { signup, isFirebaseConfigured } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isFirebaseConfigured) {
+      return setError('Firebase Environment Variables are missing. Please add them in your Vercel project settings.');
+    }
 
     if (password !== confirmPassword) {
       return setError('Passwords do not match');
