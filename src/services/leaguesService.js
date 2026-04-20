@@ -1,28 +1,13 @@
-const API_KEY = import.meta.env.VITE_FOOTBALL_DATA_API_KEY;
-const BASE_URL = 'https://api.football-data.org/v4';
-// Using a more reliable CORS proxy that forwards headers
-const PROXY_URL = 'https://corsproxy.io/?';
+// Use internal Vercel Serverless Function to avoid CORS and hide API key
+const BASE_URL = '/api/standings';
 
 export const getStandings = async (leagueCode) => {
   try {
-    if (!API_KEY || API_KEY === 'your_football_data_api_key') {
-      throw new Error('API Key missing');
-    }
-
-    const targetUrl = `${BASE_URL}/competitions/${leagueCode}/standings`;
-    console.log(`Fetching standings from: ${targetUrl}`);
-    
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`, {
-      method: 'GET',
-      headers: {
-        'X-Auth-Token': API_KEY,
-        'Accept': 'application/json'
-      }
-    });
+    const response = await fetch(`${BASE_URL}?leagueCode=${leagueCode}`);
 
     if (!response.ok) {
         const errorText = await response.text();
-        console.error(`API Error (${response.status}):`, errorText);
+        console.error(`Internal API Error (${response.status}):`, errorText);
         throw new Error(`Failed to fetch standings: ${response.status}`);
     }
 
@@ -52,7 +37,7 @@ export const getStandings = async (leagueCode) => {
     }
     throw new Error('No standings data found');
   } catch (error) {
-    console.error("Error fetching football-data.org standings:", error);
+    console.error("Error fetching standings via internal API:", error);
     // Return mock data if API fails
     return MOCK_STANDINGS[leagueCode] || null;
   }

@@ -1,12 +1,10 @@
 // News API Configuration
-const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;
-const BASE_URL = 'https://newsapi.org/v2';
-const PROXY_URL = 'https://corsproxy.io/?';
+// Use internal Vercel Serverless Function to avoid CORS and hide API key
+const BASE_URL = '/api/news';
 
 // Local cache to store fetched articles so they can be viewed by ID
 let fetchedArticles = [];
 
-// Mock data for initial development
 const MOCK_NEWS = [
   {
     id: 1,
@@ -51,47 +49,42 @@ const MOCK_NEWS = [
 
 export const getNews = async (category = 'All') => {
   try {
-    // If we have a real API key, fetch from NewsAPI.org
-    if (NEWS_API_KEY && NEWS_API_KEY !== 'your_news_api_key') {
-      // Improved query to filter out American Football and Rugby
-      const excludeTerms = '-NFL -"American Football" -rugby -SuperBowl';
-      const query = category === 'All' 
-        ? `(football OR soccer) ${excludeTerms}` 
-        : `(football OR soccer) ${category} ${excludeTerms}`;
+    const response = await fetch(`${BASE_URL}?category=${encodeURIComponent(category)}`);
+    const data = await response.json();
+    
+    if (data.status === 'ok') {
+      const articles = data.articles.map((article, index) => ({
+        id: `api-${index}`, // Use a prefix to distinguish from mock IDs
+        title: article.title,
+        excerpt: article.description,
+        content: article.content,
+        image: article.urlToImage || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800',
+        category: category === 'All' ? 'Latest' : category,
+        time: new Date(article.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        author: article.author || 'PitchPulse Staff',
+        comments: Math.floor(Math.random() * 50),
+        likes: Math.floor(Math.random() * 200),
+        url: article.url
+      }));
       
-      const targetUrl = `${BASE_URL}/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&language=en&apiKey=${NEWS_API_KEY}`;
-      const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
-      const data = await response.json();
-      
-      if (data.status === 'ok') {
-        const articles = data.articles.map((article, index) => ({
-          id: `api-${index}`, // Use a prefix to distinguish from mock IDs
-          title: article.title,
-          excerpt: article.description,
-          content: article.content,
-          image: article.urlToImage || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800',
-          category: category === 'All' ? 'Latest' : category,
-          time: new Date(article.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          author: article.author || 'PitchPulse Staff',
-          comments: Math.floor(Math.random() * 50),
-          likes: Math.floor(Math.random() * 200),
-          url: article.url
-        }));
-        
-        // Update local cache
-        fetchedArticles = articles;
-        return articles;
-      }
+      // Update local cache
+      fetchedArticles = articles;
+      return articles;
     }
-
-    // Fallback to Mock Data
-    await new Promise(resolve => setTimeout(resolve, 500));
-    if (category === 'All') return MOCK_NEWS;
-    return MOCK_NEWS.filter(item => item.category === category);
+    
+    // If API response is not ok, fallback to mock data
+    console.warn("News API response not ok, using mock data");
+    return getMockNews(category);
   } catch (error) {
-    console.error("Error fetching news:", error);
-    return MOCK_NEWS;
+    console.error("Error fetching news via internal API:", error);
+    return getMockNews(category);
   }
+};
+
+const getMockNews = async (category) => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  if (category === 'All') return MOCK_NEWS;
+  return MOCK_NEWS.filter(item => item.category === category);
 };
 
 export const getArticleById = async (id) => {

@@ -1,62 +1,57 @@
-const BASE_URL = 'https://streamed.pk/api';
-const PROXY_URL = 'https://corsproxy.io/?';
+// Use internal Vercel Serverless Function to avoid CORS
+const BASE_URL = '/api/matches';
 
 export const getLiveMatches = async () => {
   try {
-    const targetUrl = `${BASE_URL}/matches/live`;
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
+    const response = await fetch(`${BASE_URL}?endpoint=matches/live`);
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error("Error fetching live matches:", error);
+    console.error("Error fetching live matches via internal API:", error);
     return [];
   }
 };
 
 export const getTodayMatches = async () => {
   try {
-    const targetUrl = `${BASE_URL}/matches/all-today`;
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
+    const response = await fetch(`${BASE_URL}?endpoint=matches/all-today`);
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error("Error fetching today's matches:", error);
+    console.error("Error fetching today's matches via internal API:", error);
     return [];
   }
 };
 
 export const getSports = async () => {
   try {
-    const targetUrl = `${BASE_URL}/sports`;
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
+    const response = await fetch(`${BASE_URL}?endpoint=sports`);
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error("Error fetching sports:", error);
+    console.error("Error fetching sports via internal API:", error);
     return [];
   }
 };
 
 export const getMatchesBySport = async (sport = 'football') => {
   try {
-    const targetUrl = `${BASE_URL}/matches/${sport}`;
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
+    const response = await fetch(`${BASE_URL}?endpoint=matches/${sport}`);
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error(`Error fetching ${sport} matches:`, error);
+    console.error(`Error fetching ${sport} matches via internal API:`, error);
     return [];
   }
 };
 
 export const getStreamLinks = async (source, id) => {
   try {
-    const targetUrl = `${BASE_URL}/stream/${source}/${id}`;
-    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
+    const response = await fetch(`${BASE_URL}?endpoint=stream/${source}/${id}`);
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching stream links:", error);
+    console.error("Error fetching stream links via internal API:", error);
     return null;
   }
 };
