@@ -1,6 +1,7 @@
 // News API Configuration
 const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;
 const BASE_URL = 'https://newsapi.org/v2';
+const PROXY_URL = 'https://corsproxy.io/?';
 
 // Local cache to store fetched articles so they can be viewed by ID
 let fetchedArticles = [];
@@ -58,9 +59,8 @@ export const getNews = async (category = 'All') => {
         ? `(football OR soccer) ${excludeTerms}` 
         : `(football OR soccer) ${category} ${excludeTerms}`;
       
-      const response = await fetch(
-        `${BASE_URL}/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&language=en&apiKey=${NEWS_API_KEY}`
-      );
+      const targetUrl = `${BASE_URL}/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&language=en&apiKey=${NEWS_API_KEY}`;
+      const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
       const data = await response.json();
       
       if (data.status === 'ok') {

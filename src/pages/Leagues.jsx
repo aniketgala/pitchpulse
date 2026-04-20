@@ -79,7 +79,9 @@ const Leagues = () => {
           setStandings(data);
           setStandingsError(null);
         } else {
-          throw new Error('No data');
+          // If service returns null, use component's local mock as last resort
+          setStandings(MOCK_STANDINGS[league.id] || MOCK_STANDINGS['PL']);
+          setStandingsError("Showing offline data.");
         }
       } catch (err) {
         // Handle rate limiting (429) or other API errors
