@@ -1,8 +1,10 @@
 const BASE_URL = 'https://streamed.pk/api';
+const PROXY_URL = 'https://corsproxy.io/?';
 
 export const getLiveMatches = async () => {
   try {
-    const response = await fetch(`${BASE_URL}/matches/live`);
+    const targetUrl = `${BASE_URL}/matches/live`;
+    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
@@ -13,7 +15,8 @@ export const getLiveMatches = async () => {
 
 export const getTodayMatches = async () => {
   try {
-    const response = await fetch(`${BASE_URL}/matches/all-today`);
+    const targetUrl = `${BASE_URL}/matches/all-today`;
+    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
@@ -24,7 +27,8 @@ export const getTodayMatches = async () => {
 
 export const getSports = async () => {
   try {
-    const response = await fetch(`${BASE_URL}/sports`);
+    const targetUrl = `${BASE_URL}/sports`;
+    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
@@ -35,7 +39,8 @@ export const getSports = async () => {
 
 export const getMatchesBySport = async (sport = 'football') => {
   try {
-    const response = await fetch(`${BASE_URL}/matches/${sport}`);
+    const targetUrl = `${BASE_URL}/matches/${sport}`;
+    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     const data = await response.json();
     return Array.isArray(data) ? data : [];
   } catch (error) {
@@ -46,7 +51,8 @@ export const getMatchesBySport = async (sport = 'football') => {
 
 export const getStreamLinks = async (source, id) => {
   try {
-    const response = await fetch(`${BASE_URL}/stream/${source}/${id}`);
+    const targetUrl = `${BASE_URL}/stream/${source}/${id}`;
+    const response = await fetch(`${PROXY_URL}${encodeURIComponent(targetUrl)}`);
     const data = await response.json();
     return data;
   } catch (error) {
