@@ -14,7 +14,10 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!isFirebaseConfigured) {
+    // Allow demo account even if Firebase is not configured
+    const isDemo = email === 'demo@pitchpulse.com' && password === 'password123';
+
+    if (!isFirebaseConfigured && !isDemo) {
       return setError('Firebase Environment Variables are missing. Please add them in your Vercel project settings.');
     }
 
@@ -150,6 +153,20 @@ const Login = () => {
               Email: <span className="font-mono font-bold">demo@pitchpulse.com</span><br/>
               Password: <span className="font-mono font-bold">password123</span>
             </div>
+            <button
+              onClick={() => {
+                setEmail('demo@pitchpulse.com');
+                setPassword('password123');
+                // Use a small timeout to ensure state is updated before submit
+                setTimeout(() => {
+                  const form = document.querySelector('form');
+                  form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                }, 100);
+              }}
+              className="mt-4 w-full py-2 px-4 border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all"
+            >
+              Sign in as Demo
+            </button>
           </div>
         </div>
       </div>

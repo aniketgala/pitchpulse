@@ -40,6 +40,18 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
+    // Demo account bypass
+    if (email === 'demo@pitchpulse.com' && password === 'password123') {
+      const demoUser = {
+        uid: 'demo-user-id',
+        email: 'demo@pitchpulse.com',
+        isDemo: true
+      };
+      setUser(demoUser);
+      setLoading(false);
+      return demoUser;
+    }
+
     if (!auth) throw new Error("Firebase not initialized");
     return await signInWithEmailAndPassword(auth, email, password);
   };
@@ -50,6 +62,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    if (user?.isDemo) {
+      setUser(null);
+      return;
+    }
     if (!auth) throw new Error("Firebase not initialized");
     return await signOut(auth);
   };
